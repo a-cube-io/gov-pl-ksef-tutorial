@@ -1,17 +1,14 @@
 {
   "require": {
-    "vlucas/phpdotenv": "^2.4",
-    "guzzlehttp/guzzle": "^7.5",
-    "php": ">=8.0"
+    "guzzlehttp/guzzle": "*",
+    "php": ">=8.0",
+    "symfony/dotenv": "*",
+    "ext-pdo": "*",
+    "a-cube-io/acube-sdk-php": "master-dev"
   },
   "autoload": {
     "psr-4": {
       "Src\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Tests\\": "src/Tests/"
     }
   },
   "require-dev": {
@@ -26,5 +23,11 @@
   },
   "post-root-package-install": [
     "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+  ],
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/a-cube-io/acube-sdk-php.git"
+    }
   ]
 }

@@ -1,10 +1,9 @@
-
 <?php
 
-# fetch company's details from ACUBE PL API
+# get invoice content
 
 use ACube\Client\CommonApi\Authorization;
-use ACube\Client\PlApi\lib\Api\LegalEntityApi;
+use ACube\Client\PlApi\lib\Api\InvoiceApi;
 use ACube\Client\PlApi\lib\Configuration;
 use GuzzleHttp\Client;
 
@@ -18,9 +17,9 @@ $query = "SELECT c.*, i.uuid
 # fetch test client's record
 $query = $dbConnection->prepare($query);
 $query->execute();
-$result = $query->fetch(\PDO::FETCH_ASSOC);
+$result = $query->fetch(PDO::FETCH_ASSOC);
 
-if (!$result) {
+if (!$result || !$result['uuid']) {
     exit;
 }
 
@@ -31,15 +30,25 @@ $access_token = $authorization->authorize($_ENV['ACUBE_USER_EMAIL'], $_ENV['ACUB
 # configuration api client
 $config = Configuration::getDefaultConfiguration()
     ->setHost($_ENV['MAIN_URL'])
-    ->setApiKeyPrefix('Authorization','Bearer')
+    ->setApiKeyPrefix('Authorization', 'Bearer')
     ->setApiKey('Authorization', $access_token);
 
 # api instance
-$apiInstance = new LegalEntityApi(new Client(), $config);
+$apiInstance = new InvoiceApi(new Client(), $config);
+
+# invoice uuid
+$uuid = $_ENV['INVOICE_UUID'];
 
 try {
-    $result = $apiInstance->getLegalEntityItem($result['uuid']);
+    $result = $apiInstance->getInvoiceItem($uuid, 'application/json', true);
     print_r($result);
 } catch (Exception $e) {
-    echo 'Exception when calling LegalEntityApi->getLegalEntityItem: ', $e->getMessage(), PHP_EOL;
+    echo 'Exception when calling InvoiceApi->getInvoiceItem: ', $e->getMessage(), PHP_EOL;
+}
+
+try {
+    $result = $apiInstance->getInvoiceItem($uuid, 'application/xml', true);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling InvoiceApi->getInvoiceItem: ', $e->getMessage(), PHP_EOL;
 }

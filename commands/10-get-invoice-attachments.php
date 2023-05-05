@@ -1,11 +1,12 @@
 <?php
 
-# launch the company's runners
+# get invoice content
 
 use ACube\Client\CommonApi\Authorization;
-use ACube\Client\PlApi\lib\Api\AuthorizationFlowApi;
+use ACube\Client\PlApi\lib\Api\InvoiceApi;
+use ACube\Client\PlApi\lib\Api\InvoiceAttachmentsApi;
 use ACube\Client\PlApi\lib\Configuration;
-use ACube\Client\PlApi\lib\Model\KsefRevokeTokenAuthorizationFlowCollectionRequest;
+use ACube\Client\PlApi\lib\Model\InvoiceAttachmentsInvoiceAttachmentOutput;
 use GuzzleHttp\Client;
 
 require __dir__.'./../bootstrap.php';
@@ -31,18 +32,22 @@ $access_token = $authorization->authorize($_ENV['ACUBE_USER_EMAIL'], $_ENV['ACUB
 # configuration api client
 $config = Configuration::getDefaultConfiguration()
     ->setHost($_ENV['MAIN_URL'])
-    ->setApiKeyPrefix('Authorization','Bearer')
+    ->setApiKeyPrefix('Authorization', 'Bearer')
     ->setApiKey('Authorization', $access_token);
 
 # api instance
-$apiInstance = new AuthorizationFlowApi(new Client(), $config);
-
-$ksef_revoke_token_authorization_flow_collection_request = new KsefRevokeTokenAuthorizationFlowCollectionRequest();
-$ksef_revoke_token_authorization_flow_collection_request->setUuid($_ENV['ACUBE_ACCESS_TOKEN_UUID']);
+$apiInstance = new InvoiceAttachmentsApi(new Client(), $config);
+$invoiceUuid = $_ENV['INVOICE_UUID'];
 
 try {
-    $result = $apiInstance->ksefTokenSelectAuthorizationFlowCollection($result['uuid'], $ksef_revoke_token_authorization_flow_collection_request);
-    print_r($result);
+    $attachments = array_map(
+        static function (InvoiceAttachmentsInvoiceAttachmentOutput $attachment) use ($apiInstance, $invoiceUuid) {
+            return $apiInstance->getInvoiceAttachmentsItem($invoiceUuid, $attachment->getUuid(), "text/plain");
+        },
+        $apiInstance->getInvoiceAttachmentsCollection($invoiceUuid)
+    );
+
+    print_r($attachments);
 } catch (Exception $e) {
-    echo 'Exception when calling AuthorizationFlowApi->ksefTokenSelectAuthorizationFlowCollection: ', $e->getMessage(), PHP_EOL;
+    echo 'Exception when calling InvoiceAttachmentsApi->getInvoiceAttachmentsCollection: ', $e->getMessage(), PHP_EOL;
 }

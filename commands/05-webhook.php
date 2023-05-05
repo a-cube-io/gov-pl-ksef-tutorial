@@ -2,7 +2,13 @@
 
 # submit webhooks for the company
 
-require '../bootstrap.php';
+use ACube\Client\CommonApi\Authorization;
+use ACube\Client\PlApi\lib\Api\WebhookApi;
+use ACube\Client\PlApi\lib\Configuration;
+use ACube\Client\PlApi\lib\Model\WebhookWebhookInput;
+use GuzzleHttp\Client;
+
+require __dir__.'./../bootstrap.php';
 
 $query = "SELECT c.*, i.uuid 
           FROM clients as c 
@@ -12,50 +18,50 @@ $query = "SELECT c.*, i.uuid
 # fetch test client's record
 $query = $dbConnection->prepare($query);
 $query->execute();
-$result = $query->fetch(\PDO::FETCH_ASSOC);
+$result = $query->fetch(PDO::FETCH_ASSOC);
 
 if (!$result || !$result['uuid']) {
     exit;
 }
 
+$legalEntityUuid = $result['uuid'];
 $webhooks = [
-    'legal-entity-invoice-sync',
-    'legal-entity-on-boarding-activated',
-    'legal-entity-session-manager',
-    'legal-entity-invoice-sender',
     'legal-entity-invoice-receiver',
-    'legal-entity-invoice-upo'
+    'legal-entity-invoice-sender',
+    'legal-entity-invoice-sync',
+    'legal-entity-invoice-upo',
+    'legal-entity-on-boarding-activated',
+    'legal-entity-on-boarding-deactivated',
+    'legal-entity-session-manager',
 ];
 
-$exampleURL = 'https://webhook.site/888d7347-a0b3-493c-9e58-84b732bce2c9';
+$exampleURL = 'https://webhook.site/f1eeb992-0153-450f-bf28-356ca1a82880';
 
-# use httpclient to send post request to A-Cube PL API
-$client = new \GuzzleHttp\Client(['http_errors' => false]);
-$access_token = $_ENV['ACUBE_ACCESS_TOKEN'];
+# create acube token
+$authorization = new Authorization($_ENV['ACUBE_AUTH_URL']);
+$access_token = $authorization->authorize($_ENV['ACUBE_USER_EMAIL'], $_ENV['ACUBE_USER_PASSWORD']);
 
+# configuration api client
+$config = Configuration::getDefaultConfiguration()
+    ->setHost($_ENV['MAIN_URL'])
+    ->setApiKeyPrefix('Authorization','Bearer')
+    ->setApiKey('Authorization', $access_token);
+
+# api instance
+$apiInstance = new WebhookApi(new Client(), $config);
+
+# send webhook data
 foreach($webhooks as $webhook) {
-    $payload = [
-        "legalEntity" => $result['uuid'],
-        "webhookType" => $webhook,
-        "webhookUrl" => $exampleURL
-    ];
+    $webhook_webhook_input = new WebhookWebhookInput();
+    $webhook_webhook_input->setLegalEntity($legalEntityUuid);
+    $webhook_webhook_input->setWebhookType($webhook);
+    $webhook_webhook_input->setWebhookUrl($exampleURL);
 
-    $response = $client->post($_ENV['ACUBE_API_URL'] . '/webhooks', [
-        'headers' => [
-            'Authorization' => 'Bearer ' . $access_token,
-            'Content-Type' => 'application/json'
-        ],
-        'body' => json_encode($payload),
-    ]);
-
-    $statusCode = $response->getStatusCode();
-    if ($statusCode === 201) {
-        $body = $response->getBody()->getContents();
-        $body = json_decode($body);
-
-        print_r($body);
+    try {
+        $result = $apiInstance->postWebhookCollection($webhook_webhook_input);
         print "Webhook created\n";
-    } else {
-        print_r($statusCode);
+        print_r($result);
+    } catch (Exception $e) {
+        echo 'Exception when calling WebhookApi->postWebhookCollection: ', $e->getMessage(), PHP_EOL;
     }
 }
