@@ -2,14 +2,20 @@
 
 # connect company
 
-require '../bootstrap.php';
+use ACube\Client\CommonApi\Authorization;
+use ACube\Client\PlApi\lib\Api\LegalEntityApi;
+use ACube\Client\PlApi\lib\Configuration;
+use ACube\Client\PlApi\lib\Model\LegalEntityLegalEntityInput;
+use GuzzleHttp\Client;
+
+require __dir__.'./../bootstrap.php';
 
 $query = "SELECT * FROM clients WHERE id = 1 LIMIT 1";
 
 # fetch test client's record
 $query = $dbConnection->prepare($query);
 $query->execute();
-$result = $query->fetch(\PDO::FETCH_ASSOC);
+$result = $query->fetch(PDO::FETCH_ASSOC);
 
 if (!$result) {
     exit;
@@ -17,53 +23,50 @@ if (!$result) {
 
 # create integration for the client
 $query = "
-            INSERT 
-                INTO integrations (id, client_id, name, status) 
-            VALUES 
-                (1, 1, 'ksef', 0)
-        ";
+INSERT INTO integrations (id, client_id, name, status) 
+VALUES (1, 1, 'ksef', 0)";
 $query = $dbConnection->prepare($query);
 $query->execute();
 
+# create acube token
+$authorization = new Authorization($_ENV['ACUBE_AUTH_URL']);
+$access_token = $authorization->authorize($_ENV['ACUBE_USER_EMAIL'], $_ENV['ACUBE_USER_PASSWORD']);
 
-# submit company to the A-Cube PL API
-$payload = [
-    "nip" => $result['tax_id'],
-    "name" => $result['name'],
-    "addressLine1" => $result['address_line1'],
-    "addressLine2" => $result['address_line2'],
-    "postcode" => $result['postcode'],
-    "city" => $result['city'],
-    "countryIso2" => $result['country_iso'],
-    "email" => $result['email'],
-];
+# configuration api client
+$config = Configuration::getDefaultConfiguration()
+    ->setHost($_ENV['MAIN_URL'])
+    ->setApiKeyPrefix('Authorization','Bearer')
+    ->setApiKey('Authorization', $access_token);
 
-# use httpclient to send post request to A-Cube PL API
-$client = new \GuzzleHttp\Client(['http_errors' => false]);
-$access_token = $_ENV['ACUBE_ACCESS_TOKEN'];
+# api instance
+$apiInstance = new LegalEntityApi(new Client(), $config);
 
-$response = $client->post($_ENV['ACUBE_API_URL'] . '/legal-entities', [
-    'headers' => [
-        'Authorization' => 'Bearer ' . $access_token,
-        'Content-Type' => 'application/json'
-    ],
-    'body' => json_encode($payload),
-]);
+# add legal entity
+$legal_entity_legal_entity_input = new LegalEntityLegalEntityInput();
+$legal_entity_legal_entity_input->setNip($result['tax_id']);
+$legal_entity_legal_entity_input->setName($result['name']);
+$legal_entity_legal_entity_input->setAddressLine1($result['address_line1']);
+$legal_entity_legal_entity_input->setAddressLine2($result['address_line2']);
+$legal_entity_legal_entity_input->setPostcode($result['postcode']);
+$legal_entity_legal_entity_input->setCity($result['city']);
+$legal_entity_legal_entity_input->setCountryIso2($result['country_iso']);
+$legal_entity_legal_entity_input->setEmail($result['email']);
+$legal_entity_legal_entity_input->setProvince('');
+$legal_entity_legal_entity_input->setUrl('');
 
-$statusCode = $response->getStatusCode();
-if ($statusCode === 201) {
-    $body = $response->getBody()->getContents();
-    $body = json_decode($body);
-
-    # update integration for the client
-    $query = "UPDATE integrations SET uuid = :uuid, status = :status WHERE id = :id";
-    $statement = $dbConnection->prepare($query);
-    $statement->execute(array(
-        'id' => 1,
-        'uuid' => $body->uuid,
-        'status' => 100
-    ));
-    print "Received {$body->uuid} of the Company from A-Cube PL API\n";
-} else {
-    print_r($statusCode);
+try {
+    $result = $apiInstance->postLegalEntityCollection($legal_entity_legal_entity_input);
+} catch (Exception $e) {
+    echo 'Exception when calling LegalEntityApi->postLegalEntityCollection: ', $e->getMessage(), PHP_EOL;
+    die;
 }
+
+# update integration for the client
+$query = "UPDATE integrations SET uuid = :uuid, status = :status WHERE id = :id";
+$statement = $dbConnection->prepare($query);
+$statement->execute(array(
+    'id' => 1,
+    'uuid' => $result->getUuid(),
+    'status' => 100
+));
+print "Received {$result->getUuid()} of the Company from A-Cube PL API\n";

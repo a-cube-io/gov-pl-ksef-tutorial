@@ -1,6 +1,6 @@
 <?php
 
-require '../bootstrap.php';
+require __dir__.'./../bootstrap.php';
 
 $yourNIP = $_ENV['SAMPLE_NIP'];
 
@@ -22,6 +22,7 @@ $statement = "
 try {
     $seeding = $dbConnection->exec($statement);
     echo "Seeding Completed!\n";
-} catch (\PDOException $e) {
+} catch (PDOException $e) {
+    echo "If you don't created tables. Try run this command: \"php ./commands/00-create-tables.php\"\n\n";
     exit($e->getMessage());
 }
