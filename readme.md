@@ -199,3 +199,13 @@ A-Cube to access proper account in KSeF.
 #### Launch Runners
 
 #### Invoice Synchronization
+
+#### Run example commands
+
+```sh
+docker-compose up -d
+docker-compose exec php composer run-set-project
+#you should copy uuid from command (php ./commands/03-ksef.php) and put value to file .env: ACUBE_ACCESS_TOKEN_UUID=your new uuid
+docker-compose exec php composer run-launch
+docker-compose exec php composer run-invoices
+```
