@@ -2,7 +2,9 @@
 
 # submit webhooks for the company
 
-use ACube\Client\CommonApi\Authorization;
+
+use ACube\Client\CommonApi\lib\Api\LoginCheckApi;
+use ACube\Client\CommonApi\lib\Model\LoginCheckPostRequest;
 use ACube\Client\PlApi\lib\Api\WebhookApi;
 use ACube\Client\PlApi\lib\Configuration;
 use ACube\Client\PlApi\lib\Model\WebhookWebhookInput;
@@ -38,8 +40,16 @@ $webhooks = [
 $exampleURL = 'https://webhook.site/f1eeb992-0153-450f-bf28-356ca1a82880';
 
 # create acube token
-$authorization = new Authorization($_ENV['ACUBE_AUTH_URL']);
-$access_token = $authorization->authorize($_ENV['ACUBE_USER_EMAIL'], $_ENV['ACUBE_USER_PASSWORD']);
+$config = \ACube\Client\CommonApi\lib\Configuration::getDefaultConfiguration()
+    ->setHost('https://common-sandbox.api.acubeapi.com');
+
+$authorization = new LoginCheckApi(new Client(), $config);
+$access_token = $authorization->loginCheckPost(
+    new LoginCheckPostRequest([
+        'email' => $_ENV['ACUBE_USER_EMAIL'],
+        'password' => $_ENV['ACUBE_USER_PASSWORD'],
+    ])
+)->getToken();
 
 # configuration api client
 $config = Configuration::getDefaultConfiguration()
