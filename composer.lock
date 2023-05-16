@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:a-cube-io/acube-sdk-php.git",
-                "reference": "fd35b259a8e995bb8a70668700cc29c43afff497"
+                "reference": "a815b57edc955f334e2edad66ab592ebae7d36cf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/a-cube-io/acube-sdk-php/zipball/fd35b259a8e995bb8a70668700cc29c43afff497",
-                "reference": "fd35b259a8e995bb8a70668700cc29c43afff497",
+                "url": "https://api.github.com/repos/a-cube-io/acube-sdk-php/zipball/a815b57edc955f334e2edad66ab592ebae7d36cf",
+                "reference": "a815b57edc955f334e2edad66ab592ebae7d36cf",
                 "shasum": ""
             },
             "require": {
@@ -46,6 +46,11 @@
                     "ACube\\Client\\Test\\": "test/"
                 }
             },
+            "scripts": {
+                "unit-tests": [
+                    "php -d memory_limit=-1 ./vendor/bin/phpunit"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -70,7 +75,7 @@
                 "source": "https://github.com/a-cube-io/acube-sdk-php/tree/master",
                 "issues": "https://github.com/a-cube-io/acube-sdk-php/issues"
             },
-            "time": "2023-05-12T12:34:08+00:00"
+            "time": "2023-05-16T13:25:28+00:00"
         },
         {
             "name": "doctrine/annotations",
@@ -401,16 +406,16 @@
         },
         {
             "name": "guzzlehttp/guzzle",
-            "version": "7.6.0",
+            "version": "7.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/guzzle.git",
-                "reference": "733dd89533dd371a0987172727df15f500dab0ef"
+                "reference": "8444a2bacf1960bc6a2b62ed86b8e72e11eebe51"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/733dd89533dd371a0987172727df15f500dab0ef",
-                "reference": "733dd89533dd371a0987172727df15f500dab0ef",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/8444a2bacf1960bc6a2b62ed86b8e72e11eebe51",
+                "reference": "8444a2bacf1960bc6a2b62ed86b8e72e11eebe51",
                 "shasum": ""
             },
             "require": {
@@ -506,7 +511,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/guzzle/issues",
-                "source": "https://github.com/guzzle/guzzle/tree/7.6.0"
+                "source": "https://github.com/guzzle/guzzle/tree/7.6.1"
             },
             "funding": [
                 {
@@ -522,7 +527,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-05-14T11:23:39+00:00"
+            "time": "2023-05-15T20:43:01+00:00"
         },
         {
             "name": "guzzlehttp/promises",

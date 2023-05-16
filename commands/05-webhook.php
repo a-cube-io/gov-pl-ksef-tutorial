@@ -3,12 +3,8 @@
 # submit webhooks for the company
 
 
-use ACube\Client\CommonApi\lib\Api\LoginCheckApi;
-use ACube\Client\CommonApi\lib\Model\LoginCheckPostRequest;
-use ACube\Client\PlApi\lib\Api\WebhookApi;
-use ACube\Client\PlApi\lib\Configuration;
+use ACube\Client\PlApi\lib\GovPlApi;
 use ACube\Client\PlApi\lib\Model\WebhookWebhookInput;
-use GuzzleHttp\Client;
 
 require __dir__.'./../bootstrap.php';
 
@@ -39,36 +35,23 @@ $webhooks = [
 
 $exampleURL = 'https://webhook.site/f1eeb992-0153-450f-bf28-356ca1a82880';
 
-# create acube token
-$config = \ACube\Client\CommonApi\lib\Configuration::getDefaultConfiguration()
-    ->setHost('https://common-sandbox.api.acubeapi.com');
-
-$authorization = new LoginCheckApi(new Client(), $config);
-$access_token = $authorization->loginCheckPost(
-    new LoginCheckPostRequest([
-        'email' => $_ENV['ACUBE_USER_EMAIL'],
-        'password' => $_ENV['ACUBE_USER_PASSWORD'],
-    ])
-)->getToken();
-
-# configuration api client
-$config = Configuration::getDefaultConfiguration()
-    ->setHost($_ENV['MAIN_URL'])
-    ->setApiKeyPrefix('Authorization','Bearer')
-    ->setApiKey('Authorization', $access_token);
-
 # api instance
-$apiInstance = new WebhookApi(new Client(), $config);
+$govPlApi = new GovPlApi(
+    $_ENV['MAIN_URL'],
+    $_ENV['ACUBE_AUTH_URL'],
+    $_ENV['ACUBE_USER_EMAIL'],
+    $_ENV['ACUBE_USER_PASSWORD']
+);
 
 # send webhook data
-foreach($webhooks as $webhook) {
+foreach ($webhooks as $webhook) {
     $webhook_webhook_input = new WebhookWebhookInput();
     $webhook_webhook_input->setLegalEntity($legalEntityUuid);
     $webhook_webhook_input->setWebhookType($webhook);
     $webhook_webhook_input->setWebhookUrl($exampleURL);
 
     try {
-        $result = $apiInstance->postWebhookCollection($webhook_webhook_input);
+        $result = $govPlApi->getWebhookApi()->postWebhookCollection($webhook_webhook_input);
         print "Webhook created\n";
         print_r($result);
     } catch (Exception $e) {
