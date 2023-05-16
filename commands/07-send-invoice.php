@@ -3,10 +3,7 @@
 # send invoice
 
 
-use ACube\Client\CommonApi\lib\Api\LoginCheckApi;
-use ACube\Client\CommonApi\lib\Model\LoginCheckPostRequest;
-use ACube\Client\PlApi\lib\Api\InvoiceApi;
-use ACube\Client\PlApi\lib\Configuration;
+use ACube\Client\PlApi\lib\GovPlApi;
 use ACube\Client\PlApi\lib\Model\AdnotacjeAType;
 use ACube\Client\PlApi\lib\Model\FaAType;
 use ACube\Client\PlApi\lib\Model\InvoiceFaktura;
@@ -18,7 +15,6 @@ use ACube\Client\PlApi\lib\Model\TAdresType;
 use ACube\Client\PlApi\lib\Model\TNaglowekType;
 use ACube\Client\PlApi\lib\Model\TPodmiot1Type;
 use ACube\Client\PlApi\lib\Model\TPodmiotType;
-use GuzzleHttp\Client;
 
 require __dir__.'./../bootstrap.php';
 
@@ -36,26 +32,13 @@ if (!$result || !$result['uuid']) {
     exit;
 }
 
-# create acube token
-$config = \ACube\Client\CommonApi\lib\Configuration::getDefaultConfiguration()
-    ->setHost('https://common-sandbox.api.acubeapi.com');
-
-$authorization = new LoginCheckApi(new Client(), $config);
-$access_token = $authorization->loginCheckPost(
-    new LoginCheckPostRequest([
-        'email' => $_ENV['ACUBE_USER_EMAIL'],
-        'password' => $_ENV['ACUBE_USER_PASSWORD'],
-    ])
-)->getToken();
-
-# configuration api client
-$config = Configuration::getDefaultConfiguration()
-    ->setHost($_ENV['MAIN_URL'])
-    ->setApiKeyPrefix('Authorization', 'Bearer')
-    ->setApiKey('Authorization', $access_token);
-
 # api instance
-$apiInstance = new InvoiceApi(new Client(), $config);
+$govPlApi = new GovPlApi(
+    $_ENV['MAIN_URL'],
+    $_ENV['ACUBE_AUTH_URL'],
+    $_ENV['ACUBE_USER_EMAIL'],
+    $_ENV['ACUBE_USER_PASSWORD']
+);
 
 $invoice_faktura = (new InvoiceFaktura())
     ->setNaglowek(
@@ -123,7 +106,7 @@ $invoice_faktura = (new InvoiceFaktura())
     );
 
 try {
-    $result = $apiInstance->postV1InvoiceCollection($invoice_faktura);
+    $result = $govPlApi->getInvoiceApi()->postV1InvoiceCollection($invoice_faktura);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling InvoiceApi->postV1InvoiceCollection: ', $e->getMessage(), PHP_EOL;
