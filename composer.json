@@ -11,6 +11,36 @@
       "Src\\": "src/"
     }
   },
+  "scripts":{
+    "run-create-tables": "php ./commands/00-create-tables.php",
+    "run-seeder": "php ./commands/01-seeder.php",
+    "run-connect": "php ./commands/02-connect.php",
+    "run-ksef": "php ./commands/03-ksef.php",
+    "run-legal-entity": "php ./commands/04-legal-entity.php",
+    "run-webhook": "php ./commands/05-webhook.php",
+    "run-launch": "php ./commands/06-launch.php",
+    "run-send-invoice": "php ./commands/07-send-invoice.php",
+    "run-get-invoices": "php ./commands/08-get-invoices.php",
+    "run-get-invoice-content": "php ./commands/09-get-invoice-content.php",
+    "run-get-invoice-attachments": "php ./commands/10-get-invoice-attachments.php",
+    "run-get-invoice-upo": "php ./commands/11-get-invoice-upo.php",
+
+    "run-set-project": [
+      "@run-create-tables",
+      "@run-seeder",
+      "@run-connect",
+      "@run-ksef",
+      "@run-legal-entity",
+      "@run-webhook"
+    ],
+    "run-invoices": [
+      "@run-send-invoice",
+      "@run-get-invoices",
+      "@run-get-invoice-content",
+      "@run-get-invoice-attachments",
+      "@run-get-invoice-upo"
+    ]
+  },
   "require-dev": {
     "phpunit/phpunit": "^9.5"
   },
